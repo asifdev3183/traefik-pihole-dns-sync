@@ -198,9 +198,27 @@ func getTraefikRouters(apiURL string) (map[string]TraefikRouter, error) {
 		return nil, fmt.Errorf("traefik API returned %d: %s", resp.StatusCode, string(body))
 	}
 
-	var routers map[string]TraefikRouter
-	if err := json.NewDecoder(resp.Body).Decode(&routers); err != nil {
+	// Read the body to determine if it's an array or map
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
 		return nil, err
+	}
+
+	// Try to unmarshal as array first (newer Traefik versions)
+	var routersArray []TraefikRouter
+	if err := json.Unmarshal(bodyBytes, &routersArray); err == nil {
+		// Convert array to map using router name as key
+		routers := make(map[string]TraefikRouter)
+		for _, router := range routersArray {
+			routers[router.Name] = router
+		}
+		return routers, nil
+	}
+
+	// Fall back to map format (older Traefik versions)
+	var routers map[string]TraefikRouter
+	if err := json.Unmarshal(bodyBytes, &routers); err != nil {
+		return nil, fmt.Errorf("failed to parse Traefik response as array or map: %w", err)
 	}
 
 	return routers, nil
@@ -294,11 +312,24 @@ func authenticatePiHoleV6(config Config) (string, error) {
 	// Pi-hole v6 uses /api/auth endpoint
 	authURL := fmt.Sprintf("%s/api/auth", config.PiHoleURL)
 
-	data := url.Values{}
-	data.Set("password", config.PiHolePassword)
+	// Create JSON payload
+	payload := map[string]interface{}{
+		"password": config.PiHolePassword,
+		"app_sudo": true, // Request sudo privileges for config changes
+	}
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal auth payload: %w", err)
+	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.PostForm(authURL, data)
+	req, err := http.NewRequest("POST", authURL, strings.NewReader(string(jsonData)))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -330,40 +361,25 @@ func authenticatePiHoleV6(config Config) (string, error) {
 
 func addPiHoleDNSRecord(config Config, sid string, hostname, ip string) error {
 	// Add DNS record using Pi-hole v6 API with provided session ID
+	// Pi-hole v6 uses a specific endpoint format: /api/config/dns/hosts/{entry}
 
-	// First, get existing hosts (reuse SID)
-	existingHosts, err := getExistingHosts(config, sid)
-	if err != nil {
-		return fmt.Errorf("failed to get existing hosts: %w", err)
-	}
+	// Create the host entry in "IP HOSTNAME" format
+	hostEntry := fmt.Sprintf("%s %s", ip, hostname)
 
-	// Add new host entry in "IP HOSTNAME" format
-	newHost := fmt.Sprintf("%s %s", ip, hostname)
-	existingHosts = append(existingHosts, newHost)
+	// URL-encode the host entry for the path
+	encodedEntry := url.PathEscape(hostEntry)
 
-	// Update DNS config using Pi-hole v6 API
-	apiURL := fmt.Sprintf("%s/api/config/dns", config.PiHoleURL)
-
-	// Create JSON payload with updated hosts array
-	payload := map[string]interface{}{
-		"dns": map[string]interface{}{
-			"hosts": existingHosts,
-		},
-	}
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
+	// Use the correct Pi-hole v6 endpoint format
+	apiURL := fmt.Sprintf("%s/api/config/dns/hosts/%s", config.PiHoleURL, encodedEntry)
 
 	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest("PUT", apiURL, strings.NewReader(string(jsonData)))
+	req, err := http.NewRequest("PUT", apiURL, nil)
 	if err != nil {
 		return err
 	}
 
 	// Add headers
 	req.Header.Set("sid", sid)
-	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := client.Do(req)
@@ -372,44 +388,12 @@ func addPiHoleDNSRecord(config Config, sid string, hostname, ip string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("pi-hole API returned %d: %s", resp.StatusCode, string(body))
 	}
 
 	return nil
-}
-
-// getExistingHosts retrieves the current hosts array from Pi-hole
-func getExistingHosts(config Config, sid string) ([]string, error) {
-	apiURL := fmt.Sprintf("%s/api/config/dns", config.PiHoleURL)
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest("GET", apiURL, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("sid", sid)
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("pi-hole API returned %d: %s", resp.StatusCode, string(body))
-	}
-
-	var dnsResp PiHoleV6ConfigResponse
-	if err := json.NewDecoder(resp.Body).Decode(&dnsResp); err != nil {
-		return nil, err
-	}
-
-	return dnsResp.Config.DNS.Hosts, nil
 }
 
 func countMissing(hostnames []string, existing map[string]string) int {

@@ -19,7 +19,20 @@ Automatically discovers services exposed by Traefik and creates corresponding DN
 
 ## Quick Start
 
-### 1. Get Your Pi-hole Password
+### 1. Configure Pi-hole
+
+Enable API write access in Pi-hole:
+
+1. Log in to your Pi-hole web interface
+2. Navigate to **Settings** > **API / Web interface**
+3. Find the setting **`webserver.api.app_sudo`**
+4. Enable it: *"Should application password API sessions be allowed to modify config settings?"*
+5. Click **Save**
+
+> [!IMPORTANT]
+> This setting is required for the sync tool to add DNS records. Without it, API sessions will be read-only.
+
+### 2. Get Your Pi-hole Password
 
 You can retrieve your App Password from the Pi-hole web interface:
 
@@ -27,7 +40,7 @@ You can retrieve your App Password from the Pi-hole web interface:
 2. Navigate to **Settings** > **API / Web interface**.
 3. Retrieve your **App Password** (or API Token) from this page.
 
-### 2. Create Environment File
+### 3. Create Environment File
 
 ```bash
 cp .env.example .env
@@ -55,12 +68,12 @@ SYNC_INTERVAL=@every 5m
 LOG_LEVEL=info
 ```
 
-### 3. Run
+### 4. Run
 
 Using Docker Compose:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Or run manually using the pre-built image:
@@ -72,7 +85,7 @@ docker run -d \
   ghcr.io/rpressiani/traefik-pihole-dns-sync:latest
 ```
 
-### 4. Test with Dry-run
+### 5. Test with Dry-run
 
 Before making actual changes:
 
@@ -128,13 +141,13 @@ You can use standard cron expressions or the `@every` syntax:
 View logs:
 
 ```bash
-docker-compose logs -f traefik-pihole-dns-sync
+docker compose logs -f traefik-pihole-dns-sync
 ```
 
 Check sync status:
 
 ```bash
-docker-compose exec traefik-pihole-dns-sync /app/sync --once --dry-run
+docker compose exec traefik-pihole-dns-sync /app/sync --once --dry-run
 ```
 
 ## Development
@@ -142,10 +155,25 @@ docker-compose exec traefik-pihole-dns-sync /app/sync --once --dry-run
 To build and test changes locally without pushing to GitHub:
 
 1. Edit `docker-compose.yml` and uncomment `build: .` (comment out `image: ...`)
-2. Run:
+2. Build and run:
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
+
+### Testing with Flags
+
+To test with `--dry-run` or `--once` flags:
+
+```bash
+# Build the image
+docker compose build
+
+# Run once with dry-run (no changes made)
+docker compose run --rm traefik-pihole-dns-sync /app/sync --dry-run --once
+
+# Run once (makes actual changes)
+docker compose run --rm traefik-pihole-dns-sync /app/sync --once
+```
 
 ## Troubleshooting
 
@@ -174,6 +202,7 @@ To build and test changes locally without pushing to GitHub:
 
 ## TODO
 
+- [ ] Add environment variables for run modes (e.g., `RUN_MODE=dry-run` or `RUN_MODE=once`)
 - [ ] Add support for removing stale DNS records
 - [ ] Add Prometheus metrics
 - [ ] Support for CNAME records instead of A records
