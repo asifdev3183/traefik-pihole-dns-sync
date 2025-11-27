@@ -6,9 +6,21 @@ on:
       - main
     tags:
       - 'v*.*.*'
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'docker-compose.yml'
+      - 'Makefile'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'docker-compose.yml'
+      - 'Makefile'
 
 env:
   IMAGE_NAME: ${{ github.repository }}
